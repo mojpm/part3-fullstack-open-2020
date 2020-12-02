@@ -1,8 +1,16 @@
 const express = require('express');
+const morgan = require('morgan');
 
 const app = express();
 
 app.use(express.json())
+app.use(morgan('tiny'));
+
+//TODO Configure morgan to show data sent in an HTTP request
+morgan.token('logpost', (req, res) => {
+    console.log(res.body);
+})
+app.use(morgan('logpost'))
 
 let phonebook = [
     {
