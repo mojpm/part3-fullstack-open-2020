@@ -1,12 +1,13 @@
 const express = require('express');
 const morgan = require('morgan');
+const cors = require('cors');
 
 const app = express();
 
+app.use(cors())
 app.use(express.json())
 app.use(morgan('tiny'));
 
-//TODO Configure morgan to show data sent in an HTTP request
 morgan.token('logpost', (req, res) => {
     console.log(res.body);
 })
@@ -102,7 +103,7 @@ app.post(`${baseURL}`, (request, response) => {
     response.json(phonebook);
 })
 
-const port = 3001;
+const port = process.env.PORT || 3001;
 app.listen(port, () => {
     console.log(`App running on port ${port}`);
 });
