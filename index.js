@@ -6,6 +6,7 @@ const app = express();
 
 app.use(cors())
 app.use(express.json())
+app.use(express.static('build'))
 app.use(morgan('tiny'));
 
 morgan.token('logpost', (req, res) => {
@@ -38,9 +39,9 @@ let phonebook = [
 
 const baseURL = '/api/persons';
 
-app.get('/', (req, res) => {
-    res.send('<h1>Hello from the server</h1>')
-});
+// app.get('/', (req, res) => {
+//     res.send('<h1>Hello from the server</h1>')
+// });
 
 app.get(baseURL, (request, response) => {
     response.json(phonebook)
