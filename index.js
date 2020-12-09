@@ -1,6 +1,8 @@
+require('dotenv').config()
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
+const Contact = require('./models/contact')
 
 const app = express();
 
@@ -14,38 +16,30 @@ morgan.token('logpost', (req, res) => {
 })
 app.use(morgan('logpost'))
 
-let phonebook = [
-    {
-        id: 1,
-        name: 'Arto Hellas',
-        number: '040-123456'
-    },
-    {
-        id: 2,
-        name: 'Ada Lovelace',
-        number: '39-44-5323523'
-    },
-    {
-        id: 3,
-        name: 'Dan Abramov',
-        number: '12-43-234345'
-    },
-    {
-        id: 4,
-        name: 'Mary Poppendick',
-        number: '39-23-6423122'
-    }
-]
-
 const baseURL = '/api/persons';
 
-// app.get('/', (req, res) => {
-//     res.send('<h1>Hello from the server</h1>')
-// });
-
 app.get(baseURL, (request, response) => {
-    response.json(phonebook)
+    Contact
+        .find({})
+        .then(notes => {
+            console.log(notes.length)
+            response.json(notes)
+        })
 });
+
+app.get('/info', (request, response) => {
+    Contact
+        .find({})
+        .then(notes => {
+            response.send(
+                `<div>
+                <p> The Phonebook has info for ${notes.length} people</p>
+                <p>${new Date()}</p>
+            </div>`
+            )
+        })
+});
+
 
 app.get(`${baseURL}/:id`, (request, response) => {
     const requestID = Number(request.params.id);
@@ -58,15 +52,6 @@ app.get(`${baseURL}/:id`, (request, response) => {
     response.json(person)
 });
 
-app.get('/info', (request, response) => {
-
-    response.send(`
-    <div>
-        <p> The Phonebook has info for ${phonebook.length} people</p>
-        <p>${new Date()}</p>
-    </div>
-    `)
-});
 
 app.delete(`${baseURL}/:id`, (request, response) => {
     const requestID = Number(request.params.id);
@@ -89,23 +74,19 @@ app.post(`${baseURL}`, (request, response) => {
         })
     }
 
-    if (phonebook.find(person => person.name === newPerson.name)) {
-        return response.status(400).json({
-            error: 'name must be unique'
-        })
-    }
-
-    const person = {
-        id: generateID(),
+    const person = new Contact({
         name: newPerson.name,
         number: newPerson.number
-    }
-    phonebook = phonebook.concat(person);
-    response.json(phonebook);
+    })
+
+    person
+        .save()
+        .then(savedNote => {
+            response.json(savedNote)
+        })
 })
 
-const port = process.env.PORT || 3001;
+const port = process.env.PORT;
 app.listen(port, () => {
     console.log(`App running on port ${port}`);
 });
-
