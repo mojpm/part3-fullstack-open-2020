@@ -18,7 +18,7 @@ app.use(morgan('logpost'))
 
 const baseURL = '/api/persons';
 
-app.get(baseURL, (request, response) => {
+app.get('/api/persons', (request, response) => {
     Contact
         .find({})
         .then(notes => {
@@ -26,6 +26,7 @@ app.get(baseURL, (request, response) => {
             console.log(notes)
             response.json(notes)
         })
+        .catch(error => next(error))
 });
 
 app.get('/info', (request, response) => {
@@ -39,34 +40,39 @@ app.get('/info', (request, response) => {
             </div>`
             )
         })
+        .catch(error => error)
 });
 
+app.get('/api/persons/:id', (request, response, next) => {
+    console.log(request.params.id)
+    Contact
+        .findById(request.params.id)
+        .then(note => {
+            if (note) {
+                response.json(note)
+            } else {
+                response
+                    .status(400)
+                    .end()
+            }
+        })
+        .catch(error => next(error))
+})
 
-app.get(`${baseURL}/:id`, (request, response) => {
-    const requestID = Number(request.params.id);
-    const person = phonebook.find(person => person.id === requestID);
 
-    if (!person) {
-        return response.status(404).end()
-    }
 
-    response.json(person)
+app.delete(`/api/persons/:id`, (request, response) => {
+    Contact
+        .findByIdAndDelete(request.params.id)
+        .then(result => {
+            response
+                .status(204)
+                .end()
+        })
+        .catch(error => next(error))
 });
 
-
-app.delete(`${baseURL}/:id`, (request, response) => {
-    const requestID = Number(request.params.id);
-    phonebook = phonebook.filter(person => person.id !== requestID);
-
-    response.status(204).end()
-});
-
-const generateID = () => {
-    const maxID = phonebook.length > 0 ? Math.max(...phonebook.map(p => p.id)) : 0;
-    return maxID + 1
-}
-
-app.post(`${baseURL}`, (request, response) => {
+app.post(`/api/persons`, (request, response) => {
     const newPerson = request.body;
 
     if (!newPerson.name && newPerson.number) {
@@ -74,7 +80,6 @@ app.post(`${baseURL}`, (request, response) => {
             error: 'Person must have a name and a number'
         })
     }
-
     const person = new Contact({
         name: newPerson.name,
         number: newPerson.number
@@ -85,8 +90,20 @@ app.post(`${baseURL}`, (request, response) => {
         .then(savedNote => {
             response.json(savedNote)
         })
+        .catch(error => next(error))
 })
 
+const errorHandler = (error, request, response, next) => {
+    if (error.message === 'CastError') {
+        response
+            .status(400)
+            .send({
+                error: 'malformatted URL'
+            })
+    }
+}
+
+app.use(errorHandler);
 const port = process.env.PORT;
 app.listen(port, () => {
     console.log(`App running on port ${port}`);
