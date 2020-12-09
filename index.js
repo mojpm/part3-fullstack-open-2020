@@ -23,6 +23,7 @@ app.get(baseURL, (request, response) => {
         .find({})
         .then(notes => {
             console.log(notes.length)
+            console.log(notes)
             response.json(notes)
         })
 });

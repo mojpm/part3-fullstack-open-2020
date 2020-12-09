@@ -1,4 +1,0 @@
-const baseURL = '/api/persons';
-
-
-
