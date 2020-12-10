@@ -16,8 +16,6 @@ morgan.token('logpost', (req, res) => {
 })
 app.use(morgan('logpost'))
 
-const baseURL = '/api/persons';
-
 app.get('/api/persons', (request, response) => {
     Contact
         .find({})
