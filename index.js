@@ -70,6 +70,7 @@ app.post('/api/persons', (request, response, next) => {
     //TODO Display Error when validation is not met => Corrections
 })
 
+
 app.delete('/api/persons/:id', (request, response, next) => {
     Contact
         .findByIdAndRemove(request.params.id)
@@ -96,7 +97,6 @@ app.put('/api/persons/:id', (request, response, next) => {
 
 })
 
-
 const unknownEndpoint = (request, response) => {
     response
         .status(404)
@@ -120,7 +120,6 @@ const errorHandler = (error, request, response, next) => {
     }
     next(error)
 }
-
 app.use(errorHandler)
 
 const port = process.env.PORT || 3001;
