@@ -10,7 +10,8 @@
     "build:ui": "rm -rf build && cd ../fullstack-open-2020/part2/phonebook && npm run build --prod && cp -r build ../../../part3-fullstack-open-2020",
     "deploy": "git push heroku main",
     "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && npm run deploy",
-    "logs:prod": "heroku logs --tail"
+    "logs:prod": "heroku logs --tail",
+    "test:DB": "node mongo.js"
   },
   "repository": {
     "type": "git",
@@ -29,7 +30,7 @@
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
-    "mongoose": "^5.11.5",
+    "mongoose": "^5.11.6",
     "morgan": "^1.10.0"
   }
 }
