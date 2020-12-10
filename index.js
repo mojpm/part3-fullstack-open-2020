@@ -1,8 +1,6 @@
-require('dotenv').config()
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
-const Contact = require('./models/contact')
 
 const app = express();
 
@@ -16,61 +14,69 @@ morgan.token('logpost', (req, res) => {
 })
 app.use(morgan('logpost'))
 
-app.get('/api/persons', (request, response) => {
-    Contact
-        .find({})
-        .then(notes => {
-            console.log(notes.length)
-            console.log(notes)
-            response.json(notes)
-        })
-        .catch(error => next(error))
+let phonebook = [
+    {
+        id: 1,
+        name: 'Arto Hellas',
+        number: '040-123456'
+    },
+    {
+        id: 2,
+        name: 'Ada Lovelace',
+        number: '39-44-5323523'
+    },
+    {
+        id: 3,
+        name: 'Dan Abramov',
+        number: '12-43-234345'
+    },
+    {
+        id: 4,
+        name: 'Mary Poppendick',
+        number: '39-23-6423122'
+    }
+]
+
+const baseURL = '/api/persons';
+
+app.get(baseURL, (request, response) => {
+    response.json(phonebook)
+});
+
+app.get(`${baseURL}/:id`, (request, response) => {
+    const requestID = Number(request.params.id);
+    const person = phonebook.find(person => person.id === requestID);
+
+    if (!person) {
+        return response.status(404).end()
+    }
+
+    response.json(person)
 });
 
 app.get('/info', (request, response) => {
-    Contact
-        .find({})
-        .then(notes => {
-            response.send(
-                `<div>
-                <p> The Phonebook has info for ${notes.length} people</p>
-                <p>${new Date()}</p>
-            </div>`
-            )
-        })
-        .catch(error => error)
+
+    response.send(`
+    <div>
+        <p> The Phonebook has info for ${phonebook.length} people</p>
+        <p>${new Date()}</p>
+    </div>
+    `)
 });
 
-app.get('/api/persons/:id', (request, response, next) => {
-    console.log(request.params.id)
-    Contact
-        .findById(request.params.id)
-        .then(note => {
-            if (note) {
-                response.json(note)
-            } else {
-                response
-                    .status(400)
-                    .end()
-            }
-        })
-        .catch(error => next(error))
-})
+app.delete(`${baseURL}/:id`, (request, response) => {
+    const requestID = Number(request.params.id);
+    phonebook = phonebook.filter(person => person.id !== requestID);
 
-
-
-app.delete(`/api/persons/:id`, (request, response) => {
-    Contact
-        .findByIdAndDelete(request.params.id)
-        .then(result => {
-            response
-                .status(204)
-                .end()
-        })
-        .catch(error => next(error))
+    response.status(204).end()
 });
 
-app.post(`/api/persons`, (request, response) => {
+const generateID = () => {
+    const maxID = phonebook.length > 0 ? Math.max(...phonebook.map(p => p.id)) : 0;
+    return maxID + 1
+}
+
+app.post(`${baseURL}`, (request, response) => {
     const newPerson = request.body;
 
     if (!newPerson.name && newPerson.number) {
@@ -78,31 +84,23 @@ app.post(`/api/persons`, (request, response) => {
             error: 'Person must have a name and a number'
         })
     }
-    const person = new Contact({
+
+    if (phonebook.find(person => person.name === newPerson.name)) {
+        return response.status(400).json({
+            error: 'name must be unique'
+        })
+    }
+
+    const person = {
+        id: generateID(),
         name: newPerson.name,
         number: newPerson.number
-    })
-
-    person
-        .save()
-        .then(savedNote => {
-            response.json(savedNote)
-        })
-        .catch(error => next(error))
+    }
+    phonebook = phonebook.concat(person);
+    response.json(phonebook);
 })
 
-const errorHandler = (error, request, response, next) => {
-    if (error.message === 'CastError') {
-        response
-            .status(400)
-            .send({
-                error: 'malformatted URL'
-            })
-    }
-}
-
-app.use(errorHandler);
-const port = process.env.PORT;
+const port = process.env.PORT || 3001;
 app.listen(port, () => {
     console.log(`App running on port ${port}`);
 });
